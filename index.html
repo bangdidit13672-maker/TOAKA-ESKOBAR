@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOAKA ESKOBAR - PURE MIX v4.3</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background: #000; color: #fff; overflow-x: hidden; padding-bottom: 70px; }
+
+        /* --- LAYER 1: HALAMAN LOGIN --- */
+        .login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .login-box { width: 100%; max-width: 350px; text-align: center; }
+        .login-box h2 { font-size: 26px; color: #cc0000; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        .login-box p { font-size: 13px; color: #aaa; margin-bottom: 25px; }
+        .login-input {
+            width: 100%; padding: 14px; background: #111; border: 1px solid #333;
+            color: #fff; border-radius: 8px; font-size: 15px; outline: none; text-align: center; margin-bottom: 15px;
+        }
+        .login-input:focus { border-color: #cc0000; }
+        .btn-login {
+            width: 100%; padding: 14px; background: #cc0000; color: #fff;
+            border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;
+        }
+
+        /* Box Rekomendasi Nama Jika Duplikat */
+        .suggestion-box {
+            display: none; background: #111; border: 1px solid #cc0000; 
+            border-radius: 8px; padding: 12px; margin-top: 15px; text-align: left;
+        }
+        .suggestion-box p { font-size: 12px; color: #ff3333; margin-bottom: 8px; }
+        .suggest-item {
+            display: inline-block; background: #222; color: #fff; padding: 6px 12px;
+            border-radius: 20px; font-size: 12px; margin: 4px; cursor: pointer; border: 1px solid #444;
+        }
+        .suggest-item:hover { border-color: #cc0000; background: #333; }
+
+        /* --- LAYER 2: HALAMAN UTAMA / FEED FOTO --- */
+        .main-app { display: none; } 
+        
+        header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 55px; background: rgba(0,0,0,0.85);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #1a1a1a; z-index: 10;
+        }
+        header h1 { font-size: 15px; text-transform: uppercase; letter-spacing: 2px; color: #cc0000; flex-grow: 1; text-align: center; }
+
+        .profile-trigger {
+            display: flex; align-items: center; gap: 8px; cursor: pointer; background: none; border: none; color: #fff; text-align: left;
+        }
+        .profile-trigger img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1.5px solid #cc0000; background: #222; }
+        .profile-trigger .mini-name { font-size: 12px; font-weight: bold; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .btn-inbox-nav { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 5px; position: relative; }
+        .btn-inbox-nav .badge-chat { position: absolute; top: 0; right: 0; background: #fe0979; color: #fff; font-size: 9px; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        .feed-container { margin-top: 55px; max-width: 500px; margin-left: auto; margin-right: auto; padding: 10px 0; }
+
+        /* Postingan Card */
+        .post-card { position: relative; width: 100%; background: #000; margin-bottom: 15px; border-bottom: 1px solid #111; }
+        .post-card .img-wrapper { width: 100%; max-height: 75vh; overflow: hidden; background: #050505; display: flex; align-items: center; justify-content: center; }
+        .post-card img { width: 100%; height: auto; max-height: 75vh; object-fit: contain; display: block; }
+        
+        .post-details { padding: 15px 12px; background: #000; position: relative; }
+        .post-user { font-weight: bold; color: #fff; font-size: 14px; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+        .post-user .badge { background: #cc0000; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: normal; text-transform: uppercase; }
+        .post-desc { font-size: 13.5px; color: #e1e1e1; line-height: 1.4; word-break: break-word; padding-right: 30px; }
+        .post-date { font-size: 10px; color: #555; margin-top: 6px; display: block; }
+
+        /* Actions */
+        .post-actions { display: flex; gap: 20px; margin: 10px 0 5px 0; border-top: 1px solid #111; padding-top: 10px; }
+        .action-btn { background: none; border: none; color: #aaa; font-size: 13px; display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: bold; }
+        .action-btn.liked { color: #ff2d55; }
+
+        /* Komentar */
+        .comments-section { background: #050505; border-radius: 8px; padding: 10px; margin-top: 10px; }
+        .comments-list { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .comment-item { font-size: 12.5px; line-height: 1.4; background: #111; padding: 6px 10px; border-radius: 6px; color: #ddd; }
+        .comment-item span { font-weight: bold; color: #fff; margin-right: 5px; }
+        
+        .comment-input-row { display: flex; gap: 8px; }
+        .comment-input { flex: 1; background: #111; border: 1px solid #222; border-radius: 20px; padding: 8px 14px; color: #fff; font-size: 12.5px; outline: none; }
+        .btn-comment-send { background: #cc0000; color: #fff; border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
+
+        .btn-delete-post { position: absolute; right: 12px; top: 15px; background: none; border: none; color: #444; font-size: 15px; cursor: pointer; z-index: 2; }
+
+        /* Navigasi */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
+            background: #000; border-top: 1px solid #1a1a1a; display: flex;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .btn-add-tiktok {
+            position: relative; width: 46px; height: 30px; background: #fff; border-radius: 8px; border: none; cursor: pointer; font-size: 20px; font-weight: bold; color: #000; display: flex; justify-content: center; align-items: center;
+        }
+        .btn-add-tiktok::before { content: ''; position: absolute; top: 0; left: -3px; width: 46px; height: 30px; background: #00f2fe; border-radius: 8px; z-index: -1; }
+        .btn-add-tiktok::after { content: ''; position: absolute; top: 0; right: -3px; width: 46px; height: 30px; background: #fe0979; border-radius: 8px; z-index: -2; }
+
+        /* --- SHEET MODEL: DIALOG SHARE --- */
+        .share-sheet {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #161722; border-radius: 16px 16px 0 0; z-index: 850; padding: 20px 15px; box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+        }
+        .share-sheet h3 { font-size: 14px; text-align: center; margin-bottom: 15px; color: #fff; }
+        .share-friends-row { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 12px; border-bottom: 1px solid #2f303d; margin-bottom: 12px; }
+        .share-friend-card { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 60px; cursor: pointer; }
+        .share-friend-avatar { width: 45px; height: 45px; border-radius: 50%; background: #3a3b45; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; border: 2px solid #00f2fe; color: #fff; margin-bottom: 6px; }
+        .share-friend-name { font-size: 11px; color: #aaa; width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .share-apps-row { display: flex; gap: 18px; overflow-x: auto; }
+        .share-app-icon { display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 55px; }
+        .circle-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; color: #fff; margin-bottom: 6px; }
+        .icon-wa { background: #25D366; }
+        .icon-fb { background: #1877F2; }
+        .icon-tt { background: #000; border: 1px solid #333; }
+        .icon-link { background: #73747b; }
+        .share-app-name { font-size: 11px; color: #aaa; }
+        .btn-close-sheet { width: 100%; background: #2f303d; border: none; padding: 12px; border-radius: 8px; color: #fff; font-weight: bold; margin-top: 15px; cursor: pointer; }
+
+        /* --- LAYER 3: HALAMAN INPUT UPLOAD --- */
+        .upload-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 500; flex-direction: column; }
+        .upload-header { width: 100%; height: 50px; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+        .upload-header .btn-back { background: none; border: none; color: #fff; font-size: 16px; cursor: pointer; }
+        .upload-header h2 { font-size: 16px; font-weight: bold; }
+        .upload-header .btn-post { background: #cc0000; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .upload-content { padding: 15px; display: flex; flex-direction: column; gap: 15px; flex: 1; }
+        .upload-main-row { display: flex; gap: 12px; width: 100%; align-items: flex-start; }
+        .upload-textarea { flex: 1; background: transparent; border: none; color: #fff; resize: none; outline: none; font-size: 14px; height: 90px; }
+        .preview-box { width: 70px; height: 90px; background: #111; border-radius: 4px; overflow: hidden; border: 1px solid #222; }
+        .preview-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- LAYER 4: HALAMAN PROFIL SAYA --- */
+        .profile-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 600; flex-direction: column; }
+        .profile-header { width: 100%; height: 50px; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+        .profile-header .btn-close-prof { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+        .profile-header h2 { font-size: 16px; font-weight: bold; }
+        .profile-header .btn-save-prof { background: #cc0000; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .profile-content { padding: 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        
+        .avatar-container { position: relative; width: 90px; height: 90px; cursor: pointer; }
+        .avatar-large { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #cc0000; background: #222; }
+        .avatar-overlay { position: absolute; bottom: 0; right: 0; background: #cc0000; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid #000; }
+        
+        .tiktok-stats-row { display: flex; gap: 25px; margin: 5px 0; text-align: center; }
+        .stat-item { display: flex; flex-direction: column; font-size: 13px; color: #aaa; }
+        .stat-item strong { font-size: 16px; color: #fff; }
+
+        .profile-form { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 12px; color: #aaa; text-transform: uppercase; }
+        .form-group input { width: 100%; padding: 12px; background: #111; border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 14px; outline: none; }
+        .btn-logout { background: #333; color: #ff3333; border: 1px solid #444; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; text-align: center; }
+
+        /* --- LAYER 5: HALAMAN PROFIL ORANG LAIN --- */
+        .view-profile-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 700; flex-direction: column; }
+        .view-profile-content { padding: 20px; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 20px; }
+        .view-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid #00f2fe; background: #222; }
+        
+        .view-actions-row { display: flex; width: 100%; max-width: 320px; gap: 10px; justify-content: center; }
+        .btn-follow-tiktok { flex: 1; padding: 10px; border-radius: 20px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; }
+        .btn-follow-tiktok.follow-active { background: #333; color: #fff; border: 1px solid #555; }
+        .btn-follow-tiktok.follow-none { background: #fe0979; color: #fff; }
+        .btn-profile-chat { background: #242526; color: #fff; border: 1px solid #3a3b3c; border-radius: 20px; padding: 0 15px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        .view-data-box { width: 100%; max-width: 400px; background: #111; border: 1px solid #222; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .view-item { border-bottom: 1px solid #1a1a1a; padding-bottom: 8px; }
+        .view-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .view-label { font-size: 11px; color: #666; text-transform: uppercase; }
+        .view-value { font-size: 14px; color: #fff; font-weight: bold; margin-top: 2px; }
+
+        /* --- LAYER 6: HALAMAN CHAT / INBOX PENCARIAN REAL --- */
+        .chat-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 800; flex-direction: column; }
+        .chat-header { width: 100%; height: 55px; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; padding: 0 15px; gap: 15px; }
+        .btn-chat-back { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+        .chat-header h2 { font-size: 16px; font-weight: bold; }
+        
+        /* Search Box Real Area */
+        .search-container { padding: 10px 15px; background: #0a0a0a; border-bottom: 1px solid #1a1a1a; position: relative; }
+        .search-input { width: 100%; background: #1c1c1e; border: none; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13px; outline: none; }
+        .search-results-dropdown { 
+            position: absolute; top: 48px; left: 15px; right: 15px; background: #1c1c1e; border: 1px solid #333; 
+            border-radius: 8px; z-index: 900; max-height: 200px; overflow-y: auto; display: none;
+        }
+        .search-result-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #2c2c2e; cursor: pointer; }
+        .search-result-item .res-avatar { width: 32px; height: 32px; border-radius: 50%; background: #cc0000; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        .search-result-item .res-name { font-size: 13px; font-weight: bold; color: #fff; }
+
+        /* Chat Tabs & Layout */
+        .chat-tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid #1a1a1a; height: 40px; }
+        .tab-btn { flex: 1; background: none; border: none; color: #555; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; }
+        .tab-btn.active { color: #fe0979; border-bottom: 2px solid #fe0979; }
+
+        .chat-container { flex: 1; display: flex; width: 100%; height: calc(100% - 143px); }
+        .chat-sidebar { width: 90px; border-right: 1px solid #1a1a1a; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 15px; }
+        .chat-user-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; text-align: center; width: 100%; position: relative; }
+        .chat-user-avatar { width: 45px; height: 45px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; border: 1.5px solid #333; color: #fff; object-fit: cover; }
+        .chat-user-item.active .chat-user-avatar { border-color: #fe0979; }
+        .chat-user-name { font-size: 10px; color: #aaa; margin-top: 4px; width: 75px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .chat-main-area { flex: 1; display: flex; flex-direction: column; background: #050505; }
+        .chat-messages-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; word-break: break-word; }
+        .bubble.me { background: #00f2fe; color: #000; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .bubble.them { background: #242526; color: #fff; align-self: flex-start; border-bottom-left-radius: 2px; }
+        
+        .chat-input-bar { padding: 10px; background: #000; border-top: 1px solid #1a1a1a; display: flex; gap: 8px; }
+        .chat-text-input { flex: 1; background: #111; border: 1px solid #222; border-radius: 20px; padding: 10px 15px; color: #fff; font-size: 13px; outline: none; }
+        .btn-chat-send { background: #fe0979; color: #fff; border: none; padding: 0 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+        .empty-message { text-align: center; color: #444; padding: 60px 20px; font-style: italic; font-size: 14px; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="login-screen" id="login-layer">
+        <div class="login-box">
+            <h2>TOAKA ESKOBAR</h2>
+            <p>Murni Tanpa Bot — Masukkan Nama Pengguna Kamu</p>
+            <input type="text" id="username-input" class="login-input" placeholder="Ketik nama disini..." maxlength="20">
+            <button class="btn-login" id="btn-masuk">Masuk / Buat Akun</button>
+            
+            <div class="suggestion-box" id="box-saran-nama">
+                <p>⚠️ Nama sudah terpakai! Coba salah satu opsi kode di bawah ini:</p>
+                <div id="saran-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-app" id="app-layer">
+        <header>
+            <button class="profile-trigger" id="btn-buka-profil">
+                <img id="mini-avatar" src="" alt="Profil">
+                <div class="user-info-mini"><span class="mini-name" id="mini-username">-</span></div>
+            </button>
+            <h1>TOAKA ESKOBAR</h1>
+            <button class="btn-inbox-nav" id="btn-buka-inbox">📬</button>
+        </header>
+
+        <div class="feed-container" id="feed-box"></div>
+
+        <div class="bottom-nav">
+            <input type="file" id="file-chooser" accept="image/*" style="display: none;">
+            <button class="btn-add-tiktok" id="btn-plus">+</button>
+        </div>
+    </div>
+
+    <div class="share-sheet" id="share-panel">
+        <h3>Kirim ke Teman</h3>
+        <div class="share-friends-row" id="share-friends-list"></div>
+        <div class="share-apps-row">
+            <div class="share-app-icon" onclick="alert('Link tersalin!')"><div class="circle-icon icon-link">🔗</div><span class="share-app-name">Salin Link</span></div>
+        </div>
+        <button class="btn-close-sheet" id="btn-tutup-share">Batal</button>
+    </div>
+
+    <div class="upload-screen" id="upload-layer">
+        <div class="upload-header">
+            <button class="btn-back" id="btn-kembali">✕ Batal</button>
+            <h2>Posting Momen</h2>
+            <button class="btn-post" id="btn-posting-final">Posting</button>
+        </div>
+        <div class="upload-content">
+            <div class="upload-main-row">
+                <textarea id="desc-text" class="upload-textarea" placeholder="Tulis deskripsi cerita momen foto di sini..."></textarea>
+                <div class="preview-box"><img id="mini-preview-img" src="" alt=""></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-screen" id="profile-layer">
+        <div class="profile-header">
+            <button class="btn-close-prof" id="btn-tutup-profil">✕</button>
+            <h2>Profil Saya</h2>
+            <button class="btn-save-prof" id="btn-simpan-profil">Simpan</button>
+        </div>
+        <div class="profile-content">
+            <input type="file" id="avatar-chooser" accept="image/*" style="display: none;">
+            <div class="avatar-container" id="btn-ganti-avatar">
+                <img id="large-avatar" class="avatar-large" src="" alt="Avatar">
+                <div class="avatar-overlay">+</div>
+            </div>
+
+            <div class="tiktok-stats-row">
+                <div class="stat-item"><strong id="my-stat-following">0</strong>Mengikuti</div>
+                <div class="stat-item"><strong id="my-stat-followers">0</strong>Pengikut</div>
+                <div class="stat-item"><strong id="my-stat-friends">0</strong>Teman</div>
+            </div>
+
+            <div class="profile-form">
+                <div class="form-group"><label>Nama Pengguna (ID)</label><input type="text" id="prof-name" disabled style="background:#222; color:#888;"></div>
+                <div class="form-group"><label>Tanggal Lahir</label><input type="text" id="prof-ultah" placeholder="DD/MM/YYYY"></div>
+                <div class="form-group"><label>Hobi</label><input type="text" id="prof-hobi"></div>
+                <div class="form-group"><label>ID Free Fire</label><input type="text" id="prof-ff"></div>
+                <button class="btn-logout" id="btn-keluar-akun">Keluar Sesi Akun</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="view-profile-screen" id="view-profile-layer">
+        <div class="profile-header">
+            <button class="btn-close-prof" id="btn-tutup-view">✕ Kembali</button>
+            <h2>Profil Anggota</h2>
+            <div></div>
+        </div>
+        <div class="view-profile-content">
+            <img id="view-avatar-img" class="view-avatar" src="" alt="Avatar">
+            
+            <div class="view-actions-row">
+                <button id="btn-follow-action" class="btn-follow-tiktok follow-none">Ikuti</button>
+                <button id="btn-direct-chat" class="btn-profile-chat">💬 Chat</button>
+            </div>
+
+            <div class="tiktok-stats-row">
+                <div class="stat-item"><strong id="view-stat-following">0</strong>Mengikuti</div>
+                <div class="stat-item"><strong id="view-stat-followers">0</strong>Pengikut</div>
+                <div class="stat-item"><strong id="view-stat-friends">0</strong>Teman</div>
+            </div>
+
+            <div class="view-data-box">
+                <div class="view-item"><div class="view-label">Nama Pengguna</div><div class="view-value" id="view-name-val">-</div></div>
+                <div class="view-item"><div class="view-label">Tanggal Lahir</div><div class="view-value" id="view-ultah-val">-</div></div>
+                <div class="view-item"><div class="view-label">Hobi</div><div class="view-value" id="view-hobi-val">-</div></div>
+                <div class="view-item"><div class="view-label">ID Free Fire</div><div class="view-value" id="view-ff-val">-</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-screen" id="chat-layer">
+        <div class="chat-header">
+            <button class="btn-chat-back" id="btn-tutup-chat">✕</button>
+            <h2>Kotak Masuk</h2>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" id="inbox-search-input" class="search-input" placeholder="🔍 Cari nama pengguna real di sini...">
+            <div class="search-results-dropdown" id="search-dropdown-box"></div>
+        </div>
+        
+        <div class="chat-tabs">
+            <button class="tab-btn active" id="tab-teman">Teman</button>
+            <button class="tab-btn" id="tab-permintaan">Obrolan Hubungan (<span id="req-count">0</span>)</button>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-sidebar" id="chat-friends-list-box"></div>
+            <div class="chat-main-area">
+                <div class="chat-messages-box" id="chat-messages-container"></div>
+                <div class="chat-input-bar">
+                    <input type="text" id="chat-text-input" class="chat-text-input" placeholder="Kirim pesan...">
+                    <button class="btn-chat-send" id="btn-kirim-chat">Kirim</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // DOM Master
+        const loginLayer = document.getElementById('login-layer');
+        const appLayer = document.getElementById('app-layer');
+        const uploadLayer = document.getElementById('upload-layer');
+        const profileLayer = document.getElementById('profile-layer');
+        const viewProfileLayer = document.getElementById('view-profile-layer');
+        const chatLayer = document.getElementById('chat-layer');
+        const sharePanel = document.getElementById('share-panel');
+
+        const feedBox = document.getElementById('feed-box');
+        const fileChooser = document.getElementById('file-chooser');
+        const avatarChooser = document.getElementById('avatar-chooser');
+        const miniPreviewImg = document.getElementById('mini-preview-img');
+        const descText = document.getElementById('desc-text');
+        
+        const profName = document.getElementById('prof-name');
+        const profUltah = document.getElementById('prof-ultah');
+        const profHobi = document.getElementById('prof-hobi');
+        const profFF = document.getElementById('prof-ff');
+        const miniUsername = document.getElementById('mini-username');
+        const miniAvatar = document.getElementById('mini-avatar');
+        const largeAvatar = document.getElementById('large-avatar');
+        
+        const btnFollowAction = document.getElementById('btn-follow-action');
+        const btnDirectChat = document.getElementById('btn-direct-chat');
+        const tabTeman = document.getElementById('tab-teman');
+        const tabPermintaan = document.getElementById('tab-permintaan');
+        const inboxSearchInput = document.getElementById('inbox-search-input');
+        const searchDropdownBox = document.getElementById('search-dropdown-box');
+
+        // State Database Dinamis Pengguna Real (Disimpan di localStorage)
+        let dbUsers = {}; 
+        let currentSessionUser = ""; 
+        let listPostingan = [];
+        let urlGambarLokal = "";
+        let targetViewUser = "";
+        let folderKategoriChatAktif = "teman";
+        let temanAktifChatId = null;
+
+        const avatarDefault = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/></svg>";
+
+        // --- SISTEM ENGINE UTAMA ---
+        function loadDatabase() {
+            // Mengambil semua list user yang terdaftar secara real lokal
+            const savedDb = localStorage.getItem('pure_te_db_users');
+            if (savedDb) dbUsers = JSON.parse(savedDb);
+
+            // Mengambil list semua postingan galeri mix
+            const savedPosts = localStorage.getItem('pure_te_posts');
+            if (savedPosts) listPostingan = JSON.parse(savedPosts);
+
+            // Cek Sesi Login yang aktif sekarang
+            const session = localStorage.getItem('pure_te_current_session');
+            if (session && dbUsers[session]) {
+                currentSessionUser = session;
+                masukKeHalamanUtama();
+            } else {
+                loginLayer.style.display = 'flex';
+                appLayer.style.display = 'none';
+            }
+        }
+
+        function simpanDatabaseKeStorage() {
+            localStorage.setItem('pure_te_db_users', JSON.stringify(dbUsers));
+        }
+
+        function simpanPostinganKeStorage() {
+            localStorage.setItem('pure_te_posts', JSON.stringify(listPostingan));
+        }
+
+        // --- PROSES LOGIN + CEK VALIDASI DUPLIKAT ---
+        document.getElementById('btn-masuk').addEventListener('click', () => {
+            eksekusiProsesLogin(document.getElementById('username-input').value.trim());
+        });
+
+        function eksekusiProsesLogin(namaKetik) {
+            if (!namaKetik) { alert("Masukkan nama kamu bos!"); return; }
+            
+            const namaId = namaKetik.toLowerCase().replace(/\s+/g, '');
+            const boxSaran = document.getElementById('box-saran-nama');
+            const saranList = document.getElementById('saran-list');
+
+            // Cek apakah nama id tersebut sudah ada pemiliknya di lokal
+            if (dbUsers[namaId]) {
+                // Jika user yang sama cuma mau masuk ulang sesi
+                let konfirmasi = confirm(`Akun @${namaKetik} sudah terdaftar. Kamu ingin masuk kembali ke akun ini?`);
+                if (konfirmasi) {
+                    currentSessionUser = namaId;
+                    localStorage.setItem('pure_te_current_session', currentSessionUser);
+                    boxSaran.style.display = 'none';
+                    masukKeHalamanUtama();
+                } else {
+                    // Berikan Opsi Rekomendasi Kode Angka Tambahan di Belakang Nama
+                    saranList.innerHTML = "";
+                    let opsi1 = namaKetik + Math.floor(10 + Math.random() * 90);
+                    let opsi2 = namaKetik + "77";
+                    let opsi3 = namaKetik + Math.floor(100 + Math.random() * 900);
+
+                    [opsi1, opsi2, opsi3].forEach(opsi => {
+                        const item = document.createElement('div');
+                        item.classList.add('suggest-item');
+                        item.textContent = opsi;
+                        item.onclick = () => {
+                            document.getElementById('username-input').value = opsi;
+                            boxSaran.style.display = 'none';
+                            eksekusiProsesLogin(opsi);
+                        };
+                        saranList.appendChild(item);
+                    });
+                    boxSaran.style.display = 'block';
+                }
+            } else {
+                // Buat Akun Baru Murni Dari 0
+                dbUsers[namaId] = {
+                    username: namaKetik,
+                    avatar: avatarDefault,
+                    ultah: "", hobi: "", ff: "",
+                    following: {}, // Mengikuti siapa saja
+                    followers: {}, // Diikuti oleh siapa saja
+                    chats: {} // Riwayat chat murni lokal antar user
+                };
+                simpanDatabaseKeStorage();
+                currentSessionUser = namaId;
+                localStorage.setItem('pure_te_current_session', currentSessionUser);
+                boxSaran.style.display = 'none';
+                masukKeHalamanUtama();
+            }
+        }
+
+        function masukKeHalamanUtama() {
+            const uData = dbUsers[currentSessionUser];
+            miniUsername.textContent = uData.username;
+            miniAvatar.src = uData.avatar;
+
+            // Masukkan data form profil
+            profName.value = uData.username;
+            profUltah.value = uData.ultah;
+            profHobi.value = uData.hobi;
+            profFF.value = uData.ff;
+            largeAvatar.src = uData.avatar;
+
+            loginLayer.style.display = 'none';
+            appLayer.style.display = 'block';
+            
+            hitungStatistikHubunganSaya();
+            refreshTampilanFeed();
+        }
+
+        // --- HITUNG STATISTIK HUBUNGAN PENGGUNA REAL MURNI ---
+        function hitungStatistikHubunganSaya() {
+            const me = dbUsers[currentSessionUser];
+            let followingCount = Object.keys(me.following).length;
+            let followersCount = Object.keys(me.followers).length;
+            let friendsCount = 0;
+
+            Object.keys(me.following).forEach(id => {
+                if(me.followers[id]) friendsCount++;
+            });
+
+            document.getElementById('my-stat-following').textContent = followingCount;
+            document.getElementById('my-stat-followers').textContent = followersCount;
+            document.getElementById('my-stat-friends').textContent = friendsCount;
+        }
+
+        // --- SISTEM POSTING REAL FOTO ---
+        document.getElementById('btn-plus').addEventListener('click', () => { fileChooser.click(); });
+        fileChooser.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    urlGambarLokal = event.target.result;
+                    miniPreviewImg.src = urlGambarLokal;
+                    appLayer.style.display = 'none'; uploadLayer.style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        document.getElementById('btn-kembali').addEventListener('click', () => { uploadLayer.style.display = 'none'; appLayer.style.display = 'block'; fileChooser.value=""; });
+        
+        document.getElementById('btn-posting-final').addEventListener('click', () => {
+            const postBaru = {
+                id: Date.now(),
+                userId: currentSessionUser,
+                userNama: dbUsers[currentSessionUser].username,
+                gambar: urlGambarLokal,
+                deskripsi: descText.value.trim() || "Dokumentasi TOAKA ESKOBAR.",
+                tanggal: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+                likes: {}, 
+                komentar: []
+            };
+            listPostingan.unshift(postBaru);
+            simpanPostinganKeStorage();
+            refreshTampilanFeed();
+            uploadLayer.style.display = 'none'; appLayer.style.display = 'block';
+            descText.value = ""; fileChooser.value = "";
+        });
+
+        // --- RENDER FEED FOTO JALUR REAL ---
+        function refreshTampilanFeed() {
+            feedBox.innerHTML = "";
+            if (listPostingan.length === 0) {
+                feedBox.innerHTML = `<div class="empty-message">Belum ada foto. Klik + untuk memposting kenangan pertamamu!</div>`;
+                return;
+            }
+
+            listPostingan.forEach(post => {
+                const card = document.createElement('div');
+                card.classList.add('post-card');
+                
+                // Ambil data profile terbaru pemilik postingan (jika berubah)
+                const dataPemilik = dbUsers[post.userId] || { username: post.userNama, avatar: avatarDefault };
+                
+                let likesCount = Object.keys(post.likes || {}).length;
+                let likedByMe = post.likes && post.likes[currentSessionUser] ? true : false;
+
+                let htmlKomentar = "";
+                post.komentar.forEach(kom => {
+                    htmlKomentar += `<div class="comment-item"><span>@${kom.nama}:</span>${kom.teks}</div>`;
+                });
+
+                card.innerHTML = `
+                    <button class="btn-delete-post" onclick="hapusPostReal(${post.id})">🗑️</button>
+                    <div class="img-wrapper"><img src="${post.gambar}"></div>
+                    <div class="post-details">
+                        <p class="post-user" onclick="bukaProfilRealOrang('${post.userId}')">
+                            <img src="${dataPemilik.avatar}" style="width:24px; height:24px; border-radius:50%; object-fit:cover; vertical-align:middle; margin-right:6px;">
+                            <span>@${dataPemilik.username}</span> <span class="badge">Kober</span>
+                        </p>
+                        <p class="post-desc">${post.deskripsi}</p>
+                        <span class="post-date">Momen: ${post.tanggal}</span>
+                        
+                        <div class="post-actions">
+                            <button class="action-btn ${likedByMe ? 'liked' : ''}" onclick="toggleLikeReal(${post.id})">
+                                <span>${likedByMe ? '❤️' : '🤍'}</span> <span>${likesCount} Like</span>
+                            </button>
+                            <button class="action-btn">💬 <span>${post.komentar.length} Komen</span></button>
+                            <button class="action-btn" onclick="bukaPanelShareReal(${post.id})">✈️ Share</button>
+                        </div>
+
+                        <div class="comments-section">
+                            <div class="comments-list">${htmlKomentar || '<p style="color:#444; font-size:11px; font-style:italic;">Belum ada komentar.</p>'}</div>
+                            <div class="comment-input-row">
+                                <input type="text" placeholder="Komentari..." class="comment-input" id="input-kom-${post.id}">
+                                <button class="btn-comment-send" onclick="kirimKomentarReal(${post.id})">➔</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                feedBox.appendChild(card);
+            });
+        }
+
+        window.toggleLikeReal = function(postId) {
+            const post = listPostingan.find(p => p.id === postId);
+            if(post) {
+                if(!post.likes) post.likes = {};
+                if(post.likes[currentSessionUser]) {
+                    delete post.likes[currentSessionUser];
+                } else {
+                    post.likes[currentSessionUser] = true;
+                }
+                simpanPostinganKeStorage();
+                refreshTampilanFeed();
+            }
+        };
+
+        window.kirimKomentarReal = function(postId) {
+            const inputField = document.getElementById(`input-kom-${postId}`);
+            const teks = inputField.value.trim();
+            if(!teks) return;
+
+            const post = listPostingan.find(p => p.id === postId);
+            if(post) {
+                post.komentar.push({ nama: dbUsers[currentSessionUser].username, teks: teks });
+                simpanPostinganKeStorage();
+                refreshTampilanFeed();
+            }
+            inputField.value = "";
+        };
+
+        window.hapusPostReal = function(id) {
+            const post = listPostingan.find(p => p.id === id);
+            if(post && post.userId !== currentSessionUser) {
+                alert("Kamu tidak bisa menghapus postingan milik orang lain!");
+                return;
+            }
+            if(confirm("Hapus foto postingan ini?")) {
+                listPostingan = listPostingan.filter(p => p.id !== id);
+                simpanPostinganKeStorage();
+                refreshTampilanFeed();
+            }
+        };
+
+        // --- EDIT & SAVE PROFIL PROFIL ---
+        document.getElementById('btn-buka-profil').addEventListener('click', () => { appLayer.style.display = 'none'; profileLayer.style.display = 'flex'; });
+        document.getElementById('btn-tutup-profil').addEventListener('click', () => { profileLayer.style.display = 'none'; appLayer.style.display = 'block'; });
+        
+        document.getElementById('btn-ganti-avatar').addEventListener('click', () => { avatarChooser.click(); });
+        avatarChooser.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    dbUsers[currentSessionUser].avatar = event.target.result;
+                    largeAvatar.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('btn-simpan-profil').addEventListener('click', () => {
+            dbUsers[currentSessionUser].ultah = profUltah.value;
+            dbUsers[currentSessionUser].hobi = profHobi.value;
+            dbUsers[currentSessionUser].ff = profFF.value;
+            simpanDatabaseKeStorage();
+            masukKeHalamanUtama();
+            profileLayer.style.display = 'none'; appLayer.style.display = 'block';
+        });
+
+        document.getElementById('btn-keluar-akun').addEventListener('click', () => {
+            localStorage.removeItem('pure_te_current_session');
+            currentSessionUser = "";
+            document.getElementById('username-input').value = "";
+            location.reload();
+        });
+
+        // --- PANEL LIHAT PROFIL ORANG LAIN (VIEW ONLY) ---
+        window.bukaProfilRealOrang = function(targetId) {
+            if (targetId === currentSessionUser) {
+                appLayer.style.display = 'none'; profileLayer.style.display = 'flex'; return;
+            }
+            
+            const targetData = dbUsers[targetId];
+            if(!targetData) return;
+
+            targetViewUser = targetId;
+            document.getElementById('view-name-val').textContent = targetData.username;
+            document.getElementById('view-ultah-val').textContent = targetData.ultah || "-";
+            document.getElementById('view-hobi-val').textContent = targetData.hobi || "-";
+            document.getElementById('view-ff-val').textContent = targetData.ff || "-";
+            document.getElementById('view-avatar-img').src = targetData.avatar;
+
+            refreshTampilanTombolFollowDanStatistikOrang(targetData);
+
+            appLayer.style.display = 'none'; viewProfileLayer.style.display = 'flex';
+        };
+
+        function refreshTampilanTombolFollowDanStatistikOrang(targetData) {
+            const me = dbUsers[currentSessionUser];
+            
+            let isFollowing = me.following[targetViewUser] ? true : false;
+            let isFollower = me.followers[targetViewUser] ? true : false;
+
+            if (isFollowing && isFollower) {
+                btnFollowAction.textContent = "Teman ⇄";
+                btnFollowAction.className = "btn-follow-tiktok follow-active";
+            } else if (isFollowing) {
+                btnFollowAction.textContent = "Mengikuti";
+                btnFollowAction.className = "btn-follow-tiktok follow-active";
+            } else {
+                btnFollowAction.textContent = "Ikuti";
+                btnFollowAction.className = "btn-follow-tiktok follow-none";
+            }
+
+            // Hitung statistik real milik target orang lain tersebut
+            let targetFollowing = Object.keys(targetData.following).length;
+            let targetFollowers = Object.keys(targetData.followers).length;
+            let targetFriends = 0;
+            Object.keys(targetData.following).forEach(id => { if(targetData.followers[id]) targetFriends++; });
+
+            document.getElementById('view-stat-following').textContent = targetFollowing;
+            document.getElementById('view-stat-followers').textContent = targetFollowers;
+            document.getElementById('view-stat-friends').textContent = targetFriends;
+        }
+
+        btnFollowAction.addEventListener('click', () => {
+            const me = dbUsers[currentSessionUser];
+            const target = dbUsers[targetViewUser];
+
+            if (me.following[targetViewUser]) {
+                // Unfollow
+                delete me.following[targetViewUser];
+                delete target.followers[currentSessionUser];
+            } else {
+                // Follow
+                me.following[targetViewUser] = true;
+                target.followers[currentSessionUser] = true;
+            }
+
+            simpanDatabaseKeStorage();
+            refreshTampilanTombolFollowDanStatistikOrang(target);
+            hitungStatistikHubunganSaya();
+        });
+
+        document.getElementById('btn-tutup-view').addEventListener('click', () => { viewProfileLayer.style.display = 'none'; appLayer.style.display = 'block'; });
+
+
+        // ==================== REAL INBOX CHAT SYSTEM (NO BOT) ====================
+        
+        // PENCARIAN REAL: Filter hanya mencari nama akun yang BENER-BENER sudah dibuat/login
+        inboxSearchInput.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase().trim();
+            if (!keyword) { searchDropdownBox.style.display = 'none'; return; }
+
+            searchDropdownBox.innerHTML = "";
+            let adaHasil = false;
+
+            // Loop database user asli yang terdaftar di localStorage
+            Object.keys(dbUsers).forEach(id => {
+                if(id !== currentSessionUser && dbUsers[id].username.toLowerCase().includes(keyword)) {
+                    adaHasil = true;
+                    const item = document.createElement('div');
+                    item.classList.add('search-result-item');
+                    item.innerHTML = `
+                        <img src="${dbUsers[id].avatar}" class="res-avatar" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                        <span class="res-name">@${dbUsers[id].username}</span>
+                    `;
+                    item.onclick = () => {
+                        searchDropdownBox.style.display = 'none';
+                        inboxSearchInput.value = "";
+                        chatLayer.style.display = 'none';
+                        bukaProfilRealOrang(id); // Buka profil real untuk follow / chat
+                    };
+                    searchDropdownBox.appendChild(item);
+                }
+            });
+
+            if (!adaHasil) {
+                searchDropdownBox.innerHTML = `<div style="color:#666; font-size:12px; padding:10px; text-align:center;">Akun tidak ditemukan</div>`;
+            }
+            searchDropdownBox.style.display = 'block';
+        });
+
+        document.addEventListener('click', (e) => { if (e.target !== inboxSearchInput) searchDropdownBox.style.display = 'none'; });
+
+        document.getElementById('btn-buka-inbox').addEventListener('click', () => { appLayer.style.display = 'none'; chatLayer.style.display = 'flex'; buildSidebarChatReal(); loadChatObrolanReal(); });
+        document.getElementById('btn-tutup-chat').addEventListener('click', () => { chatLayer.style.display = 'none'; appLayer.style.display = 'block'; });
+
+        tabTeman.addEventListener('click', () => { folderKategoriChatAktif = "teman"; tabTeman.classList.add('active'); tabPermintaan.classList.remove('active'); temanAktifChatId = null; buildSidebarChatReal(); loadChatObrolanReal(); });
+        tabPermintaan.addEventListener('click', () => { folderKategoriChatAktif = "permintaan"; tabPermintaan.classList.add('active'); tabTeman.classList.remove('active'); temanAktifChatId = null; buildSidebarChatReal(); loadChatObrolanReal(); });
+
+        function buildSidebarChatReal() {
+            const sideBox = document.getElementById('chat-friends-list-box');
+            sideBox.innerHTML = "";
+            
+            const me = dbUsers[currentSessionUser];
+            let listDitinjau = [];
+            let countHubungan = 0;
+
+            Object.keys(dbUsers).forEach(id => {
+                if (id === currentSessionUser) return;
+                
+                let isFollowing = me.following[id] ? true : false;
+                let isFollower = me.followers[id] ? true : false;
+                let adaRiwayatChat = me.chats && me.chats[id] ? true : false;
+
+                if (!isFollowing && !isFollower && adaRiwayatChat) {
+                    countHubungan++;
+                }
+
+                if (folderKategoriChatAktif === "teman") {
+                    // Masuk folder utama kalau ada hubungan follow atau chat
+                    if (isFollowing || isFollower) listDitinjau.push({ id: id, data: dbUsers[id] });
+                } else {
+                    // Masuk folder luar jika chat tanpa ada hubungan follow-followan
+                    if (!isFollowing && !isFollower && adaRiwayatChat) listDitinjau.push({ id: id, data: dbUsers[id] });
+                }
+            });
+
+            document.getElementById('req-count').textContent = countHubungan;
+
+            if (listDitinjau.length === 0) {
+                sideBox.innerHTML = `<span style="color:#444; font-size:10px; text-align:center; padding-top:20px;">Kosong</span>`;
+                return;
+            }
+
+            if (!temanAktifChatId && listDitinjau.length > 0) temanAktifChatId = listDitinjau[0].id;
+
+            listDitinjau.forEach(item => {
+                const node = document.createElement('div');
+                node.classList.add('chat-user-item');
+                if(item.id === temanAktifChatId) node.classList.add('active');
+                
+                node.onclick = () => {
+                    temanAktifChatId = item.id;
+                    buildSidebarChatReal(); 
+                    loadChatObrolanReal();
+                };
+
+                node.innerHTML = `
+                    <img src="${item.data.avatar}" class="chat-user-avatar">
+                    <div class="chat-user-name">${item.data.username}</div>
+                `;
+                sideBox.appendChild(node);
+            });
+        }
+
+        function loadChatObrolanReal() {
+            const msgBox = document.getElementById('chat-messages-container');
+            msgBox.innerHTML = "";
+            
+            if (!temanAktifChatId) {
+                msgBox.innerHTML = `<div class="empty-message">Pilih obrolan aktif...</div>`;
+                return;
+            }
+
+            const me = dbUsers[currentSessionUser];
+            const riwayat = me.chats ? me.chats[temanAktifChatId] || [] : [];
+
+            if(riwayat.length === 0) {
+                msgBox.innerHTML = `<div class="empty-message">Belum ada pesan. Mulai obrolan murni!</div>`;
+                return;
+            }
+
+            riwayat.forEach(c => {
+                const b = document.createElement('div');
+                b.classList.add('bubble', c.sender === currentSessionUser ? 'me' : 'them');
+                b.textContent = c.text;
+                msgBox.appendChild(b);
+            });
+            msgBox.scrollTop = msgBox.scrollHeight;
+        }
+
+        btnDirectChat.addEventListener('click', () => {
+            viewProfileLayer.style.display = 'none';
+            chatLayer.style.display = 'flex';
+            temanAktifChatId = targetViewUser;
+            buildSidebarChatReal();
+            loadChatObrolanReal();
+        });
+
+        document.getElementById('btn-kirim-chat').addEventListener('click', kirimPesanRealMurni);
+        document.getElementById('chat-text-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') kirimPesanRealMurni(); });
+
+        function kirimPesanRealMurni() {
+            const input = document.getElementById('chat-text-input');
+            const txt = input.value.trim();
+            if(!txt || !temanAktifChatId) return;
+
+            const me = dbUsers[currentSessionUser];
+            const target = dbUsers[temanAktifChatId];
+
+            if(!me.chats) me.chats = {};
+            if(!me.chats[temanAktifChatId]) me.chats[temanAktifChatId] = [];
+
+            if(!target.chats) target.chats = {};
+            if(!target.chats[currentSessionUser]) target.chats[currentSessionUser] = [];
+
+            // Kirim pesan dua arah murni antar data login lokal
+            const dataPesan = { sender: currentSessionUser, text: txt };
+            me.chats[temanAktifChatId].push(dataPesan);
+            target.chats[currentSessionUser].push(dataPesan);
+
+            simpanDatabaseKeStorage();
+            input.value = "";
+            loadChatObrolanReal();
+        }
+
+        // --- DIALOG BAGIKAN FOTO ---
+        window.bukaPanelShareReal = function(postId) {
+            const row = document.getElementById('share-friends-list');
+            row.innerHTML = "";
+            const me = dbUsers[currentSessionUser];
+            let adaTeman = false;
+
+            Object.keys(me.following).forEach(id => {
+                if (me.followers[id]) { // Saling follow = Teman
+                    adaTeman = true;
+                    const card = document.createElement('div');
+                    card.classList.add('share-friend-card');
+                    card.onclick = () => {
+                        if(!me.chats) me.chats = {};
+                        if(!me.chats[id]) me.chats[id] = [];
+                        if(!dbUsers[id].chats) dbUsers[id].chats = {};
+                        if(!dbUsers[id].chats[currentSessionUser]) dbUsers[id].chats[currentSessionUser] = [];
+
+                        let msgText = `🖼️ [Membagikan Postingan Foto Galeri TOAKA ESKOBAR]`;
+                        me.chats[id].push({ sender: currentSessionUser, text: msgText });
+                        dbUsers[id].chats[currentSessionUser].push({ sender: currentSessionUser, text: msgText });
+                        simpanDatabaseKeStorage();
+                        alert(`Momen berhasil dibagikan ke obrolan @${dbUsers[id].username}!`);
+                        sharePanel.style.display = 'none';
+                    };
+                    card.innerHTML = `
+                        <img src="${dbUsers[id].avatar}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
+                        <div class="share-friend-name">${dbUsers[id].username}</div>
+                    `;
+                    row.appendChild(card);
+                }
+            });
+
+            if(!adaTeman) row.innerHTML = `<span style="color:#666; font-size:11px; font-style:italic;">Belum ada akun yang saling follow.</span>`;
+            sharePanel.style.display = 'block';
+        };
+        document.getElementById('btn-tutup-share').addEventListener('click', () => { sharePanel.style.display = 'none'; });
+
+        // Start Aplikasi
+        loadDatabase();
+    </script>
+</body>
+</html>
